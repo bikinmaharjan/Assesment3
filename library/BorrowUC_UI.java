@@ -1,11 +1,13 @@
+
 package library;
 
 import java.awt.CardLayout;
-import javax.swing.JPanel;
-
-import java.util.Map;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.LayoutManager;
 import java.util.HashMap;
-
+import java.util.Map;
+import javax.swing.JPanel;
 import library.interfaces.EBorrowState;
 import library.interfaces.IBorrowUI;
 import library.interfaces.IBorrowUIListener;
@@ -15,137 +17,124 @@ import library.panels.borrow.RestrictedPanel;
 import library.panels.borrow.ScanningPanel;
 import library.panels.borrow.SwipeCardPanel;
 
-public class BorrowUC_UI extends JPanel implements IBorrowUI {
+public class BorrowUC_UI
+extends JPanel
+implements IBorrowUI {
+    private static final long serialVersionUID = 1;
+    private IBorrowUIListener listener;
+    private EBorrowState state;
+    private Map<EBorrowState, IBorrowUI> panels;
+    private static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState;
 
-	private static final long serialVersionUID = 1L;
-	
-	private IBorrowUIListener listener;
-	private EBorrowState state;
-	private Map<EBorrowState,IBorrowUI> panels;
-	private static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState;
-	
-	public BorrowUC_UI(IBorrowUIListener listener) {
-		this.listener = listener;
-		this.panels = new HashMap<EBorrowState,IBorrowUI>();		
-		this.setLayout(new CardLayout());
+    public BorrowUC_UI(IBorrowUIListener listener) {
+        this.listener = listener;
+        this.panels = new HashMap<EBorrowState, IBorrowUI>();
+        this.setLayout(new CardLayout());
+        this.addPanel(new SwipeCardPanel(listener), EBorrowState.INITIALIZED);
+        this.addPanel(new ScanningPanel(listener), EBorrowState.SCANNING_BOOKS);
+        this.addPanel(new RestrictedPanel(listener), EBorrowState.BORROWING_RESTRICTED);
+        this.addPanel(new ConfirmLoanPanel(listener), EBorrowState.CONFIRMING_LOANS);
+    }
 
-		addPanel(new SwipeCardPanel(this.listener),   EBorrowState.INITIALIZED);
-		addPanel(new ScanningPanel(this.listener),    EBorrowState.SCANNING_BOOKS);
-		addPanel(new RestrictedPanel(this.listener),  EBorrowState.BORROWING_RESTRICTED);
-		addPanel(new ConfirmLoanPanel(this.listener), EBorrowState.CONFIRMING_LOANS);
-		
-	}
-	
-	private void addPanel(ABorrowPanel panel, EBorrowState state) {
+    private void addPanel(ABorrowPanel panel, EBorrowState state) {
         this.panels.put(state, panel);
-        this.add(panel, state.toString());
- 	}
+        this.add((Component)panel, state.toString());
+    }
 
+    @Override
+    public void setState(EBorrowState state) {
+        CardLayout cl = (CardLayout)this.getLayout();
+        switch (BorrowUC_UI.$SWITCH_TABLE$library$interfaces$EBorrowState()[state.ordinal()]) {
+            case 2: {
+                cl.show(this, state.toString());
+                break;
+            }
+            case 3: {
+                cl.show(this, state.toString());
+                break;
+            }
+            case 6: {
+                cl.show(this, state.toString());
+                break;
+            }
+            case 4: {
+                cl.show(this, state.toString());
+                break;
+            }
+            case 5: {
+                break;
+            }
+            case 7: {
+                break;
+            }
+            default: {
+                throw new RuntimeException("Unknown state");
+            }
+        }
+        this.state = state;
+    }
 
-	@Override
-	public void setState(EBorrowState state) {
-		CardLayout cl = (CardLayout) (this.getLayout());
+    @Override
+    public void displayMemberDetails(int memberID, String memberName, String memberPhone) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayMemberDetails(memberID, memberName, memberPhone);
+    }
 
-		switch (state) {
-		case INITIALIZED:
-			cl.show(this, state.toString());
-			break;
-			
-		case SCANNING_BOOKS:
-			cl.show(this, state.toString());
-			break;
-			
-		case BORROWING_RESTRICTED:
-			cl.show(this, state.toString());
-			break;
-			
-		case CONFIRMING_LOANS:
-			cl.show(this, state.toString());
-			break;
+    @Override
+    public void displayOverDueMessage() {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayOverDueMessage();
+    }
 
- 		case COMPLETED:
-			break;
-			
-		case CANCELLED:
-			break;
-			
-		default:
-			throw new RuntimeException("Unknown state");
-		}
-		this.state = state;
-	}
+    @Override
+    public void displayAtLoanLimitMessage() {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayAtLoanLimitMessage();
+    }
 
+    @Override
+    public void displayOutstandingFineMessage(float amountOwing) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayOutstandingFineMessage(amountOwing);
+    }
 
-	@Override
-	public void displayMemberDetails(int memberID, String memberName, String memberPhone) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayMemberDetails( memberID,  memberName, memberPhone);		
-	}
+    @Override
+    public void displayOverFineLimitMessage(float amountOwing) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayOverFineLimitMessage(amountOwing);
+    }
 
+    @Override
+    public void displayExistingLoan(String loanDetails) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayExistingLoan(loanDetails);
+    }
 
-	@Override
-	public void displayOverDueMessage() {
-		IBorrowUI ui = panels.get(state);
-		ui.displayOverDueMessage();		
-	}
+    @Override
+    public void displayScannedBookDetails(String bookDetails) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayScannedBookDetails(bookDetails);
+    }
 
+    @Override
+    public void displayPendingLoan(String loanDetails) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayPendingLoan(loanDetails);
+    }
 
-	@Override
-	public void displayAtLoanLimitMessage() {
-		IBorrowUI ui = panels.get(state);
-		ui.displayAtLoanLimitMessage();		
-	}
+    @Override
+    public void displayConfirmingLoan(String loanDetails) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayConfirmingLoan(loanDetails);
+    }
 
+    @Override
+    public void displayErrorMessage(String errorMesg) {
+        IBorrowUI ui = this.panels.get((Object)this.state);
+        ui.displayErrorMessage(errorMesg);
+    }
 
-	@Override
-	public void displayOutstandingFineMessage(float amountOwing) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayOutstandingFineMessage(amountOwing);		
-	}
-
-	
-	@Override
-	public void displayOverFineLimitMessage(float amountOwing) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayOverFineLimitMessage(amountOwing);				
-	}
-
-	
-	@Override
-	public void displayExistingLoan(String loanDetails) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayExistingLoan(loanDetails);		
-	}
-
-	
-	@Override
-	public void displayScannedBookDetails(String bookDetails) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayScannedBookDetails(bookDetails);		
-	}
-
-	
-	@Override
-	public void displayPendingLoan(String loanDetails) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayPendingLoan(loanDetails);		
-	}
-
-	
-	@Override
-	public void displayConfirmingLoan(String loanDetails) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayConfirmingLoan(loanDetails);		
-	}
-
-	
-	@Override
-	public void displayErrorMessage(String errorMesg) {
-		IBorrowUI ui = panels.get(state);
-		ui.displayErrorMessage(errorMesg);		
-	}
-	
-	static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState() {
+    static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState() {
         int[] arrn;
         int[] arrn2 = $SWITCH_TABLE$library$interfaces$EBorrowState;
         if (arrn2 != null) {
@@ -183,5 +172,5 @@ public class BorrowUC_UI extends JPanel implements IBorrowUI {
         $SWITCH_TABLE$library$interfaces$EBorrowState = arrn;
         return $SWITCH_TABLE$library$interfaces$EBorrowState;
     }
-
 }
+

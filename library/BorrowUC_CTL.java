@@ -1,10 +1,11 @@
+
 package library;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JPanel;
-
+import library.BorrowUC_UI;
 import library.interfaces.EBorrowState;
 import library.interfaces.IBorrowUI;
 import library.interfaces.IBorrowUIListener;
@@ -22,80 +23,68 @@ import library.interfaces.hardware.IPrinter;
 import library.interfaces.hardware.IScanner;
 import library.interfaces.hardware.IScannerListener;
 
-public class BorrowUC_CTL implements ICardReaderListener, 
-									 IScannerListener, 
-									 IBorrowUIListener {
-	
-	private ICardReader reader;
-	private IScanner scanner; 
-	private IPrinter printer; 
-	private IDisplay display;
-	
-	private int scanCount = 0;
-	private IBorrowUI ui;
-	private EBorrowState state; 
-	private IBookDAO bookDAO;
-	private IMemberDAO memberDAO;
-	private ILoanDAO loanDAO;
-	
-	private List<IBook> bookList;
-	private List<ILoan> loanList;
-	private IMember borrower;
-	private JPanel previous;
-	
-	private static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState;
+public class BorrowUC_CTL
+implements ICardReaderListener,
+IScannerListener,
+IBorrowUIListener {
+    private ICardReader reader;
+    private IScanner scanner;
+    private IPrinter printer;
+    private IDisplay display;
+    private int scanCount = 0;
+    private IBorrowUI ui;
+    private EBorrowState state;
+    private IBookDAO bookDAO;
+    private IMemberDAO memberDAO;
+    private ILoanDAO loanDAO;
+    private List<IBook> bookList;
+    private List<ILoan> loanList;
+    private IMember borrower;
+    private JPanel previous;
+    private static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState;
 
-	
+    public BorrowUC_CTL(ICardReader reader, IScanner scanner, IPrinter printer, IDisplay display, IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO) {
+        this.bookDAO = bookDAO;
+        this.memberDAO = memberDAO;
+        this.loanDAO = loanDAO;
+        this.ui = new BorrowUC_UI(this);
+        this.reader = reader;
+        reader.addListener(this);
+        this.scanner = scanner;
+        scanner.addListener(this);
+        this.printer = printer;
+        this.display = display;
+        this.state = EBorrowState.CREATED;
+    }
 
-	public BorrowUC_CTL(ICardReader reader, IScanner scanner, 
-			IPrinter printer, IDisplay display,
-			IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO ) {
-		this.bookDAO = bookDAO;
-		this.memberDAO = memberDAO;
-		this.loanDAO = loanDAO;
-		this.reader =reader;
-		reader.addListener(this);
-		this.scanner = scanner;
-		scanner.addListener(this);
-		this.printer = printer;
-		
-		this.display = display;
-		this.ui = new BorrowUC_UI(this);
-		this.state = EBorrowState.CREATED;
-		
-	}
-	
-	public void initialise() {
-		this.previous = this.display.getDisplay();
-		this.display.setDisplay((JPanel) ui, "Borrow UI");
-		this.setState(EBorrowState.INITIALIZED);
-	}
-	
-	public void close() {
-		this.display.setDisplay(previous, "Main Menu");
-	}
+    public void initialise() {
+        this.previous = this.display.getDisplay();
+        this.display.setDisplay((JPanel)((Object)this.ui), "Borrow UI");
+        this.setState(EBorrowState.INITIALIZED);
+    }
 
-	@Override
-	public void cardSwiped(int memberID) {
-		boolean borrowing_restricted;
-		float amountOwing;
-		System.out.println("cardSwiped: got " + memberID);
-		if(!this.state.equals((Object)EBorrowState.INITIALIZED)){
-			throw new RuntimeException(String.format("BorrowUC_CTL : card Swiped :"
-					+ "illegal operation in state: %s", new Object[]{this.state}));
-			
-		}
-		
-		this.borrower = this.memberDAO.getMemberByID(memberID);
-		if (this.borrower == null){
-			this.ui.displayErrorMessage(String.format("Member ID %d not found", memberID));
+    public void close() {
+        this.display.setDisplay(this.previous, "Main Menu");
+    }
+
+    @Override
+    public void cardSwiped(int memberID) {
+        boolean borrowing_restricted;
+        float amountOwing;
+        System.out.println("cardSwiped: got " + memberID);
+        if (!this.state.equals((Object)EBorrowState.INITIALIZED)) {
+            throw new RuntimeException(String.format("BorrowUC_CTL : cardSwiped : illegal operation in state: %s", new Object[]{this.state}));
+        }
+        this.borrower = this.memberDAO.getMemberByID(memberID);
+        if (this.borrower == null) {
+            this.ui.displayErrorMessage(String.format("Member ID %d not found", memberID));
             return;
-		}
-		boolean overdue = this.borrower.hasOverDueLoans();
+        }
+        boolean overdue = this.borrower.hasOverDueLoans();
         boolean atLoanLimit = this.borrower.hasReachedLoanLimit();
         boolean hasFines = this.borrower.hasFinesPayable();
         boolean overFineLimit = this.borrower.hasReachedFineLimit();
-        borrowing_restricted = overdue || atLoanLimit || overFineLimit;
+        boolean bl = borrowing_restricted = overdue || atLoanLimit || overFineLimit;
         if (borrowing_restricted) {
             this.setState(EBorrowState.BORROWING_RESTRICTED);
         } else {
@@ -122,14 +111,11 @@ public class BorrowUC_CTL implements ICardReaderListener,
         }
         String loanString = this.buildLoanListDisplay(this.borrower.getLoans());
         this.ui.displayExistingLoan(loanString);
-		
-	}
-	
-	
-	
-	@Override
-	public void bookScanned(int barcode) {
-		System.out.println("bookScanned: got " + barcode);
+    }
+
+    @Override
+    public void bookScanned(int barcode) {
+        System.out.println("bookScanned: got " + barcode);
         if (this.state != EBorrowState.SCANNING_BOOKS) {
             throw new RuntimeException(String.format("BorrowUC_CTL : bookScanned : illegal operation in state: %s", new Object[]{this.state}));
         }
@@ -156,11 +142,10 @@ public class BorrowUC_CTL implements ICardReaderListener,
         if (this.scanCount >= 5) {
             this.setState(EBorrowState.CONFIRMING_LOANS);
         }
-	}
+    }
 
-	
-	private void setState(EBorrowState state) {
-		System.out.println("Setting state: " + (Object)((Object)state));
+    private void setState(EBorrowState state) {
+        System.out.println("Setting state: " + (Object)((Object)state));
         this.state = state;
         this.ui.setState(state);
         switch (BorrowUC_CTL.$SWITCH_TABLE$library$interfaces$EBorrowState()[state.ordinal()]) {
@@ -195,13 +180,13 @@ public class BorrowUC_CTL implements ICardReaderListener,
                 this.close();
                 break;
             }
-            case 6: {
+            case 7: {
                 this.reader.setEnabled(false);
                 this.scanner.setEnabled(false);
                 this.close();
                 break;
             }
-            case 7: {
+            case 6: {
                 this.reader.setEnabled(false);
                 this.scanner.setEnabled(false);
                 this.ui.displayErrorMessage(String.format("Member %d cannot borrow at this time.", this.borrower.getID()));
@@ -211,39 +196,41 @@ public class BorrowUC_CTL implements ICardReaderListener,
                 throw new RuntimeException("Unknown state");
             }
         }
-	}
+    }
 
-	@Override
-	public void cancelled() {
-		this.setState(EBorrowState.CANCELLED);
-	}
-	
-	@Override
-	public void scansCompleted() {
-		this.setState(EBorrowState.CONFIRMING_LOANS);
-	}
+    @Override
+    public void cancelled() {
+        this.setState(EBorrowState.CANCELLED);
+    }
 
-	@Override
-	public void loansConfirmed() {
-		this.setState(EBorrowState.COMPLETED);
-	}
+    @Override
+    public void scansCompleted() {
+        this.setState(EBorrowState.CONFIRMING_LOANS);
+    }
 
-	@Override
-	public void loansRejected() {
-		System.out.println("Loans Rejected");
+    @Override
+    public void loansConfirmed() {
+        this.setState(EBorrowState.COMPLETED);
+    }
+
+    @Override
+    public void loansRejected() {
+        System.out.println("Loans Rejected");
         this.setState(EBorrowState.SCANNING_BOOKS);
-	}
+    }
 
-	private String buildLoanListDisplay(List<ILoan> loans) {
-		StringBuilder bld = new StringBuilder();
-		for (ILoan ln : loans) {
-			if (bld.length() > 0) bld.append("\n\n");
-			bld.append(ln.toString());
-		}
-		return bld.toString();		
-	}
-	
-	static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState() {
+    private String buildLoanListDisplay(List<ILoan> loans) {
+        StringBuilder bld = new StringBuilder();
+        for (ILoan ln : loans) {
+            if (bld.length() > 0) {
+                bld.append("\n\n");
+            }
+            bld.append(ln.toString());
+        }
+        return bld.toString();
+    }
+
+    static /* synthetic */ int[] $SWITCH_TABLE$library$interfaces$EBorrowState() {
         int[] arrn;
         int[] arrn2 = $SWITCH_TABLE$library$interfaces$EBorrowState;
         if (arrn2 != null) {
@@ -282,3 +269,4 @@ public class BorrowUC_CTL implements ICardReaderListener,
         return $SWITCH_TABLE$library$interfaces$EBorrowState;
     }
 }
+
