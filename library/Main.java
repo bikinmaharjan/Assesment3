@@ -1,9 +1,10 @@
-
+//Main class for the code
+//test1
 package library;
 
 import java.util.Calendar;
 import java.util.Date;
-import javax.swing.JPanel;
+
 import javax.swing.SwingUtilities;
 import library.BorrowUC_CTL;
 import library.daos.BookHelper;
@@ -18,18 +19,15 @@ import library.hardware.Printer;
 import library.hardware.Scanner;
 import library.interfaces.IMainListener;
 import library.interfaces.daos.IBookDAO;
-import library.interfaces.daos.IBookHelper;
+
 import library.interfaces.daos.ILoanDAO;
-import library.interfaces.daos.ILoanHelper;
+
 import library.interfaces.daos.IMemberDAO;
-import library.interfaces.daos.IMemberHelper;
+
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
-import library.interfaces.hardware.ICardReader;
-import library.interfaces.hardware.IDisplay;
-import library.interfaces.hardware.IPrinter;
-import library.interfaces.hardware.IScanner;
+
 import library.panels.MainPanel;
 
 public class Main
