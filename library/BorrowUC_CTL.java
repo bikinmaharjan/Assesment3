@@ -180,18 +180,19 @@ IBorrowUIListener {
                 this.close();
                 break;
             }
-            case 7: {
-                this.reader.setEnabled(false);
-                this.scanner.setEnabled(false);
-                this.close();
-                break;
-            }
             case 6: {
                 this.reader.setEnabled(false);
                 this.scanner.setEnabled(false);
                 this.ui.displayErrorMessage(String.format("Member %d cannot borrow at this time.", this.borrower.getID()));
                 break;
             }
+            case 7: {
+                this.reader.setEnabled(false);
+                this.scanner.setEnabled(false);
+                this.close();
+                break;
+            }
+            
             default: {
                 throw new RuntimeException("Unknown state");
             }
