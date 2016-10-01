@@ -30,7 +30,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private IScanner scanner; 
 	private IPrinter printer; 
 	private IDisplay display;
-	//private String state;
+	private String states;
 	private int scanCount = 0;
 	private IBorrowUI ui;
 	private EBorrowState state; 
@@ -41,17 +41,27 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private List<IBook> bookList;
 	private List<ILoan> loanList;
 	private IMember borrower;
-	
 	private JPanel previous;
-
+	
+	private static int[] $SWITCH_TABLE$library$interfaces$EBorrowState;
+	
 
 	public BorrowUC_CTL(ICardReader reader, IScanner scanner, 
 			IPrinter printer, IDisplay display,
 			IBookDAO bookDAO, ILoanDAO loanDAO, IMemberDAO memberDAO ) {
-
+		this.bookDAO = bookDAO;
+		this.memberDAO = memberDAO;
+		this.loanDAO = loanDAO;
+		this.reader =reader;
+		reader.addListener(this);
+		this.scanner = scanner;
+		scanner.addListener(this);
+		this.printer = printer;
+		
 		this.display = display;
 		this.ui = new BorrowUC_UI(this);
-		state = EBorrowState.CREATED;
+		this.state = EBorrowState.CREATED;
+		
 	}
 	
 	public void initialise() {

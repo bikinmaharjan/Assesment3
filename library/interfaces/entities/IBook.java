@@ -1,5 +1,8 @@
 package library.interfaces.entities;
 
+import library.interfaces.entities.EBookState;
+import library.interfaces.entities.ILoan;
+
 public interface IBook {
 	
 	public void borrow(ILoan loan);
